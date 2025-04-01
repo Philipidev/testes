@@ -1,10 +1,10 @@
 import axios from 'axios';
-import { EntitySet, EntityType, ODataMetadata } from '../types/odataTypes';
+import { EntitySet, EntityType, NavigationProperty, ODataMetadata, Property } from '../types/odataTypes';
 import { mockMetadata } from './mockMetadata';
 
 // URL da API através do proxy do Vite para evitar problemas de CORS
-const ODATA_METADATA_URL = 'https://databiapidev.sysdam.com.br/oDataInspecao/$metadata';
-const USE_EXAMPLE_DATA = true; // Altere para false para usar a API real
+const ODATA_METADATA_URL = '/odata-api/oDataInspecao/$metadata';
+const USE_EXAMPLE_DATA = false; // Altere para false para usar a API real
 
 export const fetchODataMetadata = async (): Promise<ODataMetadata> => {
   try {
@@ -13,18 +13,16 @@ export const fetchODataMetadata = async (): Promise<ODataMetadata> => {
       console.log("Usando dados mockados");
       return mockMetadata;
     } else {
-      // Fazer requisição à API real usando formato JSON
+      // Fazer requisição à API real - para metadados, o formato geralmente é XML
       const response = await axios.get(ODATA_METADATA_URL, {
-        headers: { 
-          'Accept': 'application/json;odata.metadata=minimal;odata.streaming=true'
-        }
+        responseType: 'text' // Garantir que recebemos o XML como texto
       });
       
-      console.log("Resposta da API:", response.data);
+      console.log("Resposta da API recebida");
       
       // Verificar se a resposta tem dados válidos
       if (response.data) {
-        return parseJsonMetadata(response.data);
+        return parseXmlMetadata(response.data);
       } else {
         throw new Error('Resposta da API não contém dados válidos');
       }
@@ -35,17 +33,125 @@ export const fetchODataMetadata = async (): Promise<ODataMetadata> => {
   }
 };
 
-// Função para processar metadados no formato JSON
-const parseJsonMetadata = (data: Record<string, unknown>): ODataMetadata => {
-  console.log("Analisando dados JSON:", data);
-  
-  const entityTypes: Record<string, EntityType> = {};
-  const entitySets: Record<string, EntitySet> = {};
-  
-  // Implementação simplificada para evitar erros
-  // Retorna uma estrutura básica que pode ser expandida conforme a resposta real
-  
-  return { entityTypes, entitySets };
+// Função para processar metadados no formato XML usando DOMParser (browser-compatible)
+const parseXmlMetadata = (xmlData: string): ODataMetadata => {
+  try {
+    // Usar DOMParser nativo do browser para analisar o XML
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlData, "application/xml");
+    
+    console.log("XML analisado com DOMParser");
+    
+    const entityTypes: Record<string, EntityType> = {};
+    const entitySets: Record<string, EntitySet> = {};
+    
+    // Processar EntityTypes
+    const entityTypeElements = xmlDoc.querySelectorAll('EntityType');
+    entityTypeElements.forEach((entityTypeEl) => {
+      const name = entityTypeEl.getAttribute('Name') || '';
+      
+      // Processar Properties
+      const properties: Property[] = [];
+      entityTypeEl.querySelectorAll('Property').forEach((propEl) => {
+        properties.push({
+          name: propEl.getAttribute('Name') || '',
+          type: (propEl.getAttribute('Type') || '').replace('Edm.', ''),
+          nullable: propEl.getAttribute('Nullable') !== 'false'
+        });
+      });
+      
+      // Processar Navigation Properties
+      const navigationProperties: NavigationProperty[] = [];
+      entityTypeEl.querySelectorAll('NavigationProperty').forEach((navPropEl) => {
+        const typeAttr = navPropEl.getAttribute('Type') || '';
+        const isCollection = typeAttr.startsWith('Collection');
+        let targetEntity = typeAttr;
+        
+        // Extrair o tipo real da coleção se for Collection(Tipo)
+        if (isCollection) {
+          const match = targetEntity.match(/Collection\((.*)\)/);
+          targetEntity = match ? match[1] : '';
+        }
+        
+        const navProperty: NavigationProperty = {
+          name: navPropEl.getAttribute('Name') || '',
+          type: typeAttr,
+          isCollection,
+          targetEntity
+        };
+        
+        // Adicionar referential constraint se existir
+        const refConstraintEl = navPropEl.querySelector('ReferentialConstraint');
+        if (refConstraintEl) {
+          navProperty.referentialConstraint = {
+            property: refConstraintEl.getAttribute('Property') || '',
+            referencedProperty: refConstraintEl.getAttribute('ReferencedProperty') || ''
+          };
+        }
+        
+        navigationProperties.push(navProperty);
+      });
+      
+      // Extrair Keys
+      const keys: string[] = [];
+      entityTypeEl.querySelectorAll('Key PropertyRef').forEach((keyRefEl) => {
+        keys.push(keyRefEl.getAttribute('Name') || '');
+      });
+      
+      // Adicionar o EntityType ao objeto
+      entityTypes[name] = {
+        name,
+        properties,
+        navigationProperties,
+        key: keys
+      };
+    });
+    
+    // Processar EntitySets
+    const entitySetElements = xmlDoc.querySelectorAll('EntitySet');
+    entitySetElements.forEach((entitySetEl) => {
+      const name = entitySetEl.getAttribute('Name') || '';
+      const entityType = entitySetEl.getAttribute('EntityType') || '';
+      
+      // Processar Navigation Property Bindings
+      const navigationPropertyBindings: { path: string; target: string }[] = [];
+      entitySetEl.querySelectorAll('NavigationPropertyBinding').forEach((bindingEl) => {
+        navigationPropertyBindings.push({
+          path: bindingEl.getAttribute('Path') || '',
+          target: bindingEl.getAttribute('Target') || ''
+        });
+      });
+      
+      // Adicionar o EntitySet ao objeto
+      entitySets[name] = {
+        name,
+        entityType,
+        navigationPropertyBindings
+      };
+    });
+    
+    // Log para debug
+    console.log("EntityTypes processados:", Object.keys(entityTypes));
+    console.log("EntitySets processados:", Object.keys(entitySets));
+    
+    // Associar EntityTypes com EntitySets para facilitar a navegação
+    // EntityType names podem estar prefixados com namespace
+    for (const [setName, entitySet] of Object.entries(entitySets)) {
+      // Extrair apenas o nome da entidade sem o namespace
+      const entityTypeName = entitySet.entityType.split('.').pop() || '';
+      
+      // Se não encontrarmos o entityType diretamente pelo nome completo, procuramos pelo nome sem namespace
+      if (!entityTypes[entitySet.entityType] && entityTypes[entityTypeName]) {
+        console.log(`Associando EntitySet ${setName} com EntityType ${entityTypeName}`);
+        entitySet.entityType = entityTypeName;
+      }
+    }
+    
+    return { entityTypes, entitySets };
+  } catch (error) {
+    console.error('Erro ao processar metadados:', error);
+    throw new Error('Falha ao processar metadados OData');
+  }
 };
 
 // Função para verificar se existe um caminho válido entre duas entidades

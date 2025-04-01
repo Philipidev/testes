@@ -1,34 +1,49 @@
 import { useState } from 'react';
+import { Typography, Button, message } from 'antd';
+
+const { Paragraph, Title } = Typography;
 
 interface ODataQueryDisplayProps {
   queryString: string;
 }
 
 const ODataQueryDisplay = ({ queryString }: ODataQueryDisplayProps) => {
-  const [copied, setCopied] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
 
   const handleCopyToClipboard = () => {
     navigator.clipboard.writeText(queryString)
       .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        messageApi.success('Copiado para a área de transferência!');
       })
       .catch(err => {
+        messageApi.error('Falha ao copiar: ' + err);
         console.error('Falha ao copiar: ', err);
       });
   };
 
   return (
     <div className="odata-query-display">
-      <h3>Consulta OData gerada</h3>
+      {contextHolder}
+      <Title level={4}>Consulta OData gerada</Title>
       <div className="query-container">
-        <pre className="query-text">{queryString}</pre>
-        <button 
-          className="copy-button"
+        <Paragraph
+          code
+          copyable={false}
+          style={{ 
+            background: '#f5f5f5', 
+            padding: '16px', 
+            borderRadius: '4px',
+            marginBottom: '16px'
+          }}
+        >
+          {queryString}
+        </Paragraph>
+        <Button 
+          type="primary"
           onClick={handleCopyToClipboard}
         >
-          {copied ? 'Copiado!' : 'Copiar'}
-        </button>
+          Copiar
+        </Button>
       </div>
     </div>
   );

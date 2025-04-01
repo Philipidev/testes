@@ -1,22 +1,26 @@
 import './App.css';
+import { Layout, Typography } from 'antd';
 import ODataFieldSelector from './components/ODataFieldSelector';
+
+const { Header, Content, Footer } = Layout;
+const { Title, Paragraph } = Typography;
 
 function App() {
   return (
-    <div className="app-container">
-      <header className="app-header">
-        <h1>OData Field Selector</h1>
-        <p>Selecione os campos desejados da API OData</p>
-      </header>
+    <Layout className="app-container">
+      <Header className="app-header" style={{ background: '#fff' }}>
+        <Title level={1}>OData Field Selector</Title>
+        <Paragraph>Selecione os campos desejados da API OData</Paragraph>
+      </Header>
       
-      <main className="app-content">
+      <Content className="app-content">
         <ODataFieldSelector />
-      </main>
+      </Content>
       
-      <footer className="app-footer">
-        <p>Desenvolvido com React, TypeScript e Vite</p>
-      </footer>
-    </div>
+      <Footer className="app-footer">
+        <Paragraph>Desenvolvido com React, TypeScript, Vite e Ant Design</Paragraph>
+      </Footer>
+    </Layout>
   );
 }
 

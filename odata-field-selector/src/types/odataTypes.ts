@@ -43,4 +43,5 @@ export interface SelectedField {
   propertyName: string;
   displayName: string;
   path: string[];
+  navigationPath?: string[];
 } 

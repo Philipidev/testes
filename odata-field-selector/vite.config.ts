@@ -6,10 +6,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/odata': {
+      '/odata-api': {
         target: 'https://databiapidev.sysdam.com.br',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/odata/, '')
+        rewrite: (path) => path.replace(/^\/odata-api/, '')
       }
     }
   }
