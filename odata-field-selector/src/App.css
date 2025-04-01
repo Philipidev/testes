@@ -1,0 +1,232 @@
+:root {
+  --primary-color: #2563eb;
+  --secondary-color: #1e40af;
+  --background-color: #f8fafc;
+  --text-color: #1f2937;
+  --border-color: #e2e8f0;
+  --hover-color: #3b82f6;
+  --disabled-color: #9ca3af;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+.app-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.app-header h1 {
+  color: var(--primary-color);
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.app-content {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.app-footer {
+  text-align: center;
+  margin-top: 2rem;
+  color: #6b7280;
+  padding: 1rem 0;
+  width: 100%;
+}
+
+/* Componentes específicos */
+.odata-field-selector {
+  width: 100%;
+}
+
+.entity-selector,
+.property-selector,
+.nav-property-selector,
+.selected-fields {
+  margin-bottom: 2rem;
+}
+
+select {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background-color: white;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+  color: var(--text-color);
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+/* Adicionar estilos para as opções do dropdown */
+option {
+  color: var(--text-color);
+  background-color: white;
+  padding: 0.5rem;
+}
+
+/* Estilo para opções desabilitadas */
+option:disabled {
+  color: var(--disabled-color);
+}
+
+button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: var(--hover-color);
+}
+
+button:disabled {
+  background-color: var(--disabled-color);
+  cursor: not-allowed;
+}
+
+.back-btn {
+  margin-bottom: 1rem;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 2rem;
+}
+
+.error {
+  color: #ef4444;
+}
+
+.navigation-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.current-path {
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background-color: #f1f5f9;
+  border-radius: 4px;
+}
+
+.selected-fields-list {
+  list-style: none;
+}
+
+.selected-field-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.field-path {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-left: 1rem;
+}
+
+.remove-field-btn {
+  background-color: #ef4444;
+}
+
+.remove-field-btn:hover {
+  background-color: #dc2626;
+}
+
+.generate-query-section {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.generate-query-btn {
+  background-color: var(--secondary-color);
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+}
+
+.generate-query-btn:hover {
+  background-color: var(--primary-color);
+}
+
+.odata-query-display {
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.query-container {
+  position: relative;
+  margin-top: 1rem;
+}
+
+.query-text {
+  background-color: #1f2937;
+  color: #e5e7eb;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.copy-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  background-color: #6b7280;
+  opacity: 0.8;
+}
+
+.copy-button:hover {
+  opacity: 1;
+  background-color: #4b5563;
+}
